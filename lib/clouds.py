@@ -4,43 +4,42 @@
 # AUTHOR: Carlos Gimeno                                                       #
 # EMAIL: cgimeno@bifi.es                                                      #
 # VERSION: 0.0.1                                                              #
-# DESCRIPTION: Library to connect to different clouds                         #
+# DESCRIPTION: Library to connect to Openstack                                #
 # ##############################################################################
-from libcloud.compute.types import Provider
-from libcloud.compute.providers import get_driver
-import libcloud.security
-import sys
+
+from sys import exit
+from os import environ
 
 
-def init_openstack(cloud_username, cloud_password, cloud_endpoint, service, region, tenant, cloud_isendpointsecure):
+def get_keystone_creds():
     """
-    Initiates a connection with Openstack cloud. Returns driver if successful
-    :param tenant:
-    :param cloud_username:
-    :param cloud_endpoint:
-    :param cloud_password:
-    :param cloud_isendpointsecure:
-    :param region:
-    :return:
+    Reads keystone credentials from enviroment variables
+    More info: http://www.ibm.com/developerworks/cloud/library/cl-openstack-pythonapis/
+    :return: d. Dictionary with keystone credentials
     """
+    d = {}
+    d['username'] = environ['OS_USERNAME']
+    d['password'] = environ['OS_PASSWORD']
+    d['auth_url'] = environ['OS_AUTH_URL']
+    d['tenant_name'] = environ['OS_TENANT_NAME']
+    return d
 
-    if cloud_isendpointsecure:
-        libcloud.security.VERIFY_SSL_CERT = True
-    else:
-        libcloud.security.VERIFY_SSL_CERT = False
+def get_nova_creds():
+    """
+    Reads nova credentials from enviroment variables
+    More info: http://www.ibm.com/developerworks/cloud/library/cl-openstack-pythonapis/
+    :return: d. Dictionary with nova credentials
+    """
+    d = {}
+    d['username'] = environ['OS_USERNAME']
+    d['api_key'] = environ['OS_PASSWORD']
+    d['auth_url'] = environ['OS_AUTH_URL']
+    d['project_id'] = environ['OS_TENANT_NAME']
+    return d
 
-    openstack = get_driver(Provider.OPENSTACK)
-    driver = openstack(cloud_username, cloud_password, ex_force_auth_url=cloud_endpoint,
-                       ex_force_auth_version='2.0_password',
-                       ex_force_service_type='compute', ex_force_service_name=service, ex_force_service_region=region,
-                       ex_tenant_name=tenant)
-    return driver
-    pass
-
-# TODO: Implement more methods to support more clouds
 
 def main():
-    sys.exit("You can' call this python code directly")
+    exit("You can' call this python code directly")
 
 
 if __name__ == "__main__":
