@@ -13,7 +13,7 @@ from clouds import get_nova_creds
 from sys import exit
 from os import environ
 
-def delete(image_name):
+def delete_image(image_name):
 
     if environ['OS_IS_SECURE'] == "True":
         is_secure = True

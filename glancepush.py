@@ -20,8 +20,9 @@ import stat
 import argparse
 import ConfigParser
 import re
-from lib import delete
+from lib.delete import delete_image
 from lib.publish import publish_image
+from lib.policy import policy_check
 
 __author__ = "Carlos Gimeno"
 __license__ = "MIT"
@@ -48,12 +49,8 @@ def main():
 
     # Config Parser options
 
-    config = ConfigParser.ConfigParser()
     cloud_config = ConfigParser.ConfigParser()
 
-
-    #if (os.path.isfile(cfg) == False):
-    #    sys.exit("ERROR: Can't access config file")
     for cloud_file in os.listdir(clouds_directory):
         # Read configuration file for every cloud in clouds directory
 
@@ -63,6 +60,7 @@ def main():
         password = cloud_config.get("general", "password")
         username = cloud_config.get("general", "username")
         is_secure = cloud_config.get("general", "is_secure")
+        ssh_key = cloud_config.get("general", "ssh_key")
 
         # Set the enviroment variables for keystone and nova-client
         os.environ['OS_USERNAME'] = username
@@ -70,6 +68,7 @@ def main():
         os.environ['OS_AUTH_URL'] = auth_url
         os.environ['OS_TENANT_NAME'] = tenant
         os.environ['OS_IS_SECURE'] = is_secure
+
 
         # And for every clouds, in clouds directory, we are going to upload (or delete) all images in meta directory
         # To do this, we're going to read all files in meta directory, open their equivalent in spool directory
@@ -81,7 +80,7 @@ def main():
                 glance_image = splitted[1]
                 if glance_image == "#DELETE#":
                     # Delete image from cloud infrastructure
-                    deleted = delete(files)
+                    deleted = delete_image(files)
                 else:
                     # We're going to upload the image to the infrastructure
                     with open(files,"r") as meta_file:
@@ -95,20 +94,21 @@ def main():
                                 properties_dict['comment'] = splitted[1]
 
                             elif splitted[0] == "disk_format":
-                                image_format = splitted[1]
+                                image_format = splitted[1].replace('"', '')
 
                             elif splitted[0] == "container_format":
-                                container_format = splitted[1]
+                                container_format = splitted[1].replace('"', '')
 
                             elif ab.match(splitted[0]):
-                                key = splitted[1].replace('\'','')
-                                value = splitted[2].rstrip('\n').replace('\'','')
+                                key = splitted[1].replace('\'', '')
+                                value = splitted[2].rstrip('\n').replace('\'', '')
                                 properties_dict[key] = value
+                        # Publish image into quarantine area
                         publish_image(glance_image, files, image_format, container_format, properties_dict)
+                        # TODO Finish policy check
+                        #policy_check(ssh_key, files)
                     meta_file.close()
             image_file.close()
-
-pass
 
 if __name__ == "__main__":
     main()

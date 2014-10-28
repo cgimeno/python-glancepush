@@ -5,9 +5,10 @@
 # EMAIL: cgimeno@bifi.es                                                      #
 # VERSION: 0.0.1                                                              #
 # DESCRIPTION: Upload images to the cloud using Openstack API                 #
-###############################################################################
-from clouds import get_keystone_creds
+# ##############################################################################
+from clouds import *
 import keystoneclient.v2_0.client as ksclient
+import novaclient.v1_1.client as nvclient
 import glanceclient
 from sys import exit
 from os import environ
@@ -17,6 +18,7 @@ __license__ = "MIT"
 __maintainer__ = "Carlos Gimeno"
 __email__ = "cgimeno@bifi.es"
 __status__ = "Development"
+
 
 def publish_image(image_file, image_name, image_format, container_format, properties_dict):
     """
@@ -34,15 +36,22 @@ def publish_image(image_file, image_name, image_format, container_format, proper
         is_secure = False
 
     credentials = get_keystone_creds()
+    nova_credentials = get_nova_creds()
+    nova = nvclient.Client(insecure=is_secure, **nova_credentials)
     keystone = ksclient.Client(insecure=is_secure, **credentials)
     glance_endpoint = keystone.service_catalog.url_for(service_type='image', endpoint_type='publicURL')
-    glance = glanceclient.Client('1',glance_endpoint, token=keystone.auth_token)
+    glance = glanceclient.Client('1', glance_endpoint, token=keystone.auth_token)
     with open(image_file, 'r') as fimage:
-        glance.images.create(name=image_name+".q", disk_format="qcow2", container_format="bare",
-                             data=fimage, properties =  properties_dict )
+        image = glance.images.create(name=image_name + ".q", disk_format=image_format,
+                                     container_format=container_format,
+                                     data=fimage, properties=properties_dict)
+
+    print nova.images.get(image.id).metadata
+
 
 def main():
     exit("You can't call this program directly")
+
 
 if __name__ == "__main__":
     main()
