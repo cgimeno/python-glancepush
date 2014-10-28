@@ -101,11 +101,13 @@ def main():
                                 container_format = splitted[1]
 
                             elif ab.match(splitted[0]):
-                                properties_dict[splitted[1]] = splitted[2]
-                            print glance_image
+                                key = splitted[1].replace('\'','')
+                                value = splitted[2].rstrip('\n').replace('\'','')
+                                properties_dict[key] = value
                         publish_image(glance_image, files, image_format, container_format, properties_dict)
-                    pass
-                image_file.close()
+                    meta_file.close()
+            image_file.close()
+
 pass
 
 if __name__ == "__main__":
