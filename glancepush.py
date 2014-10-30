@@ -17,9 +17,9 @@ import os
 import argparse
 import ConfigParser
 import re
-from lib.delete import delete_image
-from lib.publish import publish_image
-from lib.policy import policy_check
+from pyglancepush.delete import delete_image
+from pyglancepush.publish import publish_image
+from pyglancepush.policy import policy_check
 
 __author__ = "Carlos Gimeno"
 __license__ = "MIT"

@@ -7,7 +7,7 @@
 # DESCRIPTION: Upload images to the cloud using Openstack API                 #
 # ##############################################################################
 from clouds import *
-from lib.delete import delete_image
+from pyglancepush.delete import delete_image
 import keystoneclient.v2_0.client as ksclient
 import novaclient.v1_1.client as nvclient
 import novaclient.exceptions
