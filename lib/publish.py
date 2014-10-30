@@ -90,11 +90,12 @@ def publish_image(image_file, image_name, image_format, container_format, is_pub
                 print "Uploading new version"
             except KeyError:
                 print "ERROR! VO not defined in voms.json"
-     if upload:
-     with open(image_file, 'r') as fimage:
-            image = glance.images.create(name=image_name, disk_format="\""+image_format+"\"",
-                                        container_format="\""+container_format+"\"",
-                                         data=fimage, properties=properties_dict, public=is_public, is_protected=protect_image )
+    if upload:
+        with open(image_file, 'r') as fimage:
+            image = glance.images.create(name=image_name, disk_format="\"" + image_format + "\"",
+                                         container_format="\"" + container_format + "\"",
+                                         data=fimage, properties=properties_dict, public=is_public,
+                                         is_protected=protect_image)
     if upload:
         print nova.images.get(image.id).metadata
 
