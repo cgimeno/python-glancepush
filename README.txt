@@ -16,7 +16,12 @@ Requirements:
 Installation Instructions
 ===================
 
-At the moment, just clone this repository.
+You have 3 options:
+
+ - Clone this repository. After that, go into cloned directory and execute "python setup.py install"
+ - Download it from [https://github.com/cgimeno/python-glancepush/releases] (Releases) page
+ - Download it from [http://www.yokel.org/pub/software/yokel.org/release/x86_64/scientific/6x/rpm/] (yokel.org). Thanks yo Owen Synge
+
 
 ---
 

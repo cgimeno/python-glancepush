@@ -3,7 +3,7 @@
 # #############################################################################
 # AUTHOR: Carlos Gimeno                                                       #
 # EMAIL: cgimeno@bifi.es                                                      #
-# VERSION: 0.0.1                                                              #
+# VERSION: 0.0.2                                                              #
 # DESCRIPTION: Create a new instance, and runs policy checks on it            #
 ###############################################################################
 import os
@@ -51,7 +51,7 @@ def policy_check(ssh_key, image_name):
     instance.add_floating_ip(floating_ip)
     ssh = paramiko.SSHClient
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy)
-    ssh.connect(hostname=floating_ip, port=22, username=root, key_filename="/home/carlos/.ssh/id_rsa.pub")
+    ssh.connect(hostname=floating_ip, port=22, username=root, key_filename="")
     ssh.exec_command('mkdir -p /tmp/tests/')
     ftp = ssh.open_sftp()
     ftp.put('/etc/glancepush/test/Basic_Ubuntu_Server_12.04_LTS_OS_Disk_Image', '/tmp/tests')

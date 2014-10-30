@@ -3,8 +3,8 @@
 # ##############################################################################
 # AUTHOR: Carlos Gimeno                                                       #
 # EMAIL: cgimeno@bifi.es                                                      #
-# VERSION: 0.0.1                                                              #
-# DESCRIPTION: Loggin options                                                 #
+# VERSION: 0.0.2                                                              #
+# DESCRIPTION: Logging options                                                 #
 ###############################################################################
 
 __author__ = "Carlos Gimeno"

@@ -1,3 +1,8 @@
 python-glancepush - 0.0.1
 
+    * Fixed some details in setup.py
+    * Fixed some potential bugs in publish.py
+
+python-glancepush - 0.0.1
+
     * Inital release

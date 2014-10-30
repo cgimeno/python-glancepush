@@ -12,12 +12,14 @@ except ImportError:
         use_setuptools()
         from setuptools import setup, find_packages
 
-version = "0.0.1"
+version = "0.0.2"
 productname = "python-glancepush"
 
 data_files_installdir = "/usr/share/doc/python-glancepush-%s" % (version)
 if "VIRTUAL_ENV" in os.environ:
     data_files_installdir = 'doc'
+
+example_files_installdir = "%s/examples" % (data_files_installdir)
 
 setup(name=productname,
       version=version,
@@ -40,5 +42,6 @@ setup(name=productname,
 
       scripts=['glancepush.py'],
       packages=['pyglancepush'],
-      data_files=[(data_files_installdir, ['README.md', 'ChangeLog', 'LICENSE'])]
+      data_files=[(data_files_installdir, ['README.md', 'ChangeLog', 'LICENSE', 'README.txt']),
+          (example_files_installdir, ['examples/clouds/eupt.example'])]
 )
