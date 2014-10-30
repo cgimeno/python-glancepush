@@ -6,6 +6,8 @@ Python-Glancepush is an implementation of glancepush using the native libraries 
 Requirements:
 
  - Python 2.7.3 (Tested)
+ - [vmcatcher 0.5.4](https://github.com/hepix-virtualisation/vmcatcher)
+ - [Openstack handler for vmcatcher 0.0.4](https://github.com/cgimeno/Openstack-handler-for-vmcatcher)
  - python-novaclient
  - python-glanceclient
 
