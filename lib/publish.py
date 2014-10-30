@@ -48,10 +48,14 @@ def publish_image(image_file, image_name, image_format, container_format, is_pub
     else:
         protect_image = False
     # Before doing anything else, check if this image is associated with current VO
+    json_file = open("/etc/glancepush/voms.json").read()
+    json_data = json.loads(json_file)
     VO = properties_dict['VMCATCHER_EVENT_VO']
-    if VO != environ['OS_TENANT_NAME'] :
+    tenant_VO = json_data[VO]["tenant"]
+    if tenant_VO != environ['OS_TENANT_NAME'] :
         print "This image is not associated with this VO " + image_name
         print "Skipping..."
+
     else:
         # Process image
         json_file = open("/etc/glancepush/voms.json").read()
@@ -95,10 +99,9 @@ def publish_image(image_file, image_name, image_format, container_format, is_pub
             print "Uploading to tenant: " + json_data[VO]["tenant"]
         if upload:
             with open(image_file, 'r') as fimage:
-                image = glance.images.create(name=image_name, disk_format="\"" + image_format + "\"",
-                                             container_format="\"" + container_format + "\"",
-                                             data=fimage, properties=properties_dict, public=is_public,
-                                             is_protected=protect_image)
+                image = glance.images.create(name=image_name, disk_format=image_format,
+                                             container_format=container_format,
+                                             data=fimage, properties=properties_dict, is_public=public)
         if upload:
             print nova.images.get(image.id).metadata
 

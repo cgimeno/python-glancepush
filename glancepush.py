@@ -95,10 +95,10 @@ def main():
                                 properties_dict['comment'] = splitted[1].rstrip('\n').replace('\'', '')
 
                             elif splitted[0] == "disk_format":
-                                image_format = splitted[1].replace('\"', '')
+                                image_format = splitted[1].rstrip('\n').replace('\"', '')
 
                             elif splitted[0] == "container_format":
-                                container_format = splitted[1].replace('\"', '')
+                                container_format = splitted[1].rstrip('\n').replace('\"', '')
 
                             elif splitted[0] == "is_public":
                                 is_public = splitted[1].rstrip('\n')

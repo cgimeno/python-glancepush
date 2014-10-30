@@ -1,0 +1,13 @@
+[general]
+# Tenant for this VO. Must match the tenant defined in voms.json file.
+testing_tenant=egi
+# Identity service endpoint (Keystone)
+endpoint_url=https://server4-eupt.unizar.es:5000/v2.0
+# User Password
+password=123456
+# User
+username=John
+# Set this to true if you're NOT using self-signed certificates
+is_secure=True
+# SSH private key that will be used to perform policy checks (to be done)
+ssh_key=Carlos_lxbifi81
