@@ -23,8 +23,8 @@ def delete_image(image_name):
     nova_credentials = get_nova_creds()
     nova = nvclient.Client(insecure=is_secure, **nova_credentials)
     try:
-        nova.images.find(name=image_name)
-        nova.images.delete(name=image_name)
+        image = nova.images.find(name=image_name)
+        nova.images.delete(image.id)
         image_deleted = True
     except novaclient.exceptions.NotFound:
         image_deleted = False

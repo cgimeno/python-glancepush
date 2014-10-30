@@ -5,8 +5,8 @@
 # EMAIL: cgimeno@bifi.es                                                      #
 # VERSION: 0.0.1                                                              #
 # DESCRIPTION: Software to upload images fetched from a VO image list         #
-# using vmcatcher, to Openstack, using Openstack API.            #
-# This software will                                             #
+# using vmcatcher, to Openstack, using Openstack API.                         #
+# This software will                                                          #
 #                - Instanciate                                                #
 #                - Apply policy checks                                        #
 #                - Publish image if tests succeed                             #
@@ -53,8 +53,7 @@ def main():
 
     for cloud_file in os.listdir(clouds_directory):
         # Read configuration file for every cloud in clouds directory
-
-        cloud_config.read(cloud_file)
+        cloud_config.read(clouds_directory + cloud_file)
         tenant = cloud_config.get("general", "testing_tenant")
         auth_url = cloud_config.get("general", "endpoint_url")
         password = cloud_config.get("general", "password")
@@ -78,12 +77,17 @@ def main():
                 line = image_file.readline()
                 splitted = line.split("=")
                 glance_image = splitted[1]
-                if glance_image == "#DELETE#":
+                if glance_image == "\'#DELETE#\'":
+                    print files
                     # Delete image from cloud infrastructure
                     deleted = delete_image(files)
+                    if deleted:
+                        print "Image " + files + "deleted"
+                    else:
+                        print "Image not found, or has been already deleted"
                 else:
                     # We're going to upload the image to the infrastructure
-                    with open(files,"r") as meta_file:
+                    with open(meta_directory + files,"r") as meta_file:
                         properties_dict = {}
                         ab = re.compile("properties\[\d+\]")
                         image_format = "qcow2"
@@ -91,13 +95,15 @@ def main():
                         for line in meta_file:
                             splitted = line.split("=")
                             if splitted[0] == 'comment':
-                                properties_dict['comment'] = splitted[1]
+                                properties_dict['comment'] = splitted[1].rstrip('\n').replace('\'', '')
 
                             elif splitted[0] == "disk_format":
                                 image_format = splitted[1].replace('"', '')
+                                
 
                             elif splitted[0] == "container_format":
                                 container_format = splitted[1].replace('"', '')
+                                
 
                             elif ab.match(splitted[0]):
                                 key = splitted[1].replace('\'', '')
@@ -106,7 +112,7 @@ def main():
                         # Publish image into quarantine area
                         publish_image(glance_image, files, image_format, container_format, properties_dict)
                         # TODO Finish policy check
-                        #policy_check(ssh_key, files)
+                        policy_check(ssh_key, files)
                     meta_file.close()
             image_file.close()
 
