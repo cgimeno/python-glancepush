@@ -14,9 +14,6 @@
 ###############################################################################
 
 import os
-import sys
-import tarfile
-import stat
 import argparse
 import ConfigParser
 import re
@@ -98,21 +95,25 @@ def main():
                                 properties_dict['comment'] = splitted[1].rstrip('\n').replace('\'', '')
 
                             elif splitted[0] == "disk_format":
-                                image_format = splitted[1].replace('"', '')
-                                
+                                image_format = splitted[1].replace('\"', '')
 
                             elif splitted[0] == "container_format":
-                                container_format = splitted[1].replace('"', '')
-                                
+                                container_format = splitted[1].replace('\"', '')
+
+                            elif splitted[0] == "is_public":
+                                is_public = splitted[1].rstrip('\n')
+
+                            elif splitted[0] == "is_protected":
+                                is_protected = splitted[1].rstrip('\n')
 
                             elif ab.match(splitted[0]):
                                 key = splitted[1].replace('\'', '')
                                 value = splitted[2].rstrip('\n').replace('\'', '')
                                 properties_dict[key] = value
                         # Publish image into quarantine area
-                        publish_image(glance_image, files, image_format, container_format, properties_dict)
+                        publish_image(glance_image, files, image_format, container_format, is_public, is_protected, properties_dict)
                         # TODO Finish policy check
-                        policy_check(ssh_key, files)
+                        #policy_check(ssh_key, files)
                     meta_file.close()
             image_file.close()
 
