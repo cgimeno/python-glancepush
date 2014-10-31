@@ -17,6 +17,7 @@ import os
 import argparse
 import ConfigParser
 import re
+import logging
 from pyglancepush.delete import delete_image
 from pyglancepush.publish import publish_image
 from pyglancepush.policy import policy_check
@@ -49,6 +50,30 @@ def main():
 
     cloud_config = ConfigParser.ConfigParser()
 
+    # Logging options
+    log_directory = "/etc/glancepush/log/"
+    log_filename = "glancepush.log"
+    logger = logging.getLogger('glancepush')
+    logger.setLevel(logging.DEBUG)
+    # Log to a file
+    fh = logging.FileHandler(log_directory + log_filename)
+    fh.setLevel(logging.DEBUG)
+
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    fh.setFormatter(formatter)
+
+    # Log Critical errors to the console too
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.CRITICAL)
+    ch.setFormatter(formatter)
+
+    logger.addHandler(fh)
+    logger.addHandler(ch)
+    # Create log directory if not exists
+    if not os.path.exists(log_directory):
+        os.makedirs(log_directory)
+
+    logger.info('Glancepush started. Checking images')
     for cloud_file in os.listdir(clouds_directory):
         # Read configuration file for every cloud in clouds directory
         cloud_config.read(clouds_directory + cloud_file)
@@ -117,6 +142,7 @@ def main():
                         #policy_check(ssh_key, files)
                     meta_file.close()
             image_file.close()
+    logger.info('Finished exectuion of glancepush')
 
 if __name__ == "__main__":
     main()

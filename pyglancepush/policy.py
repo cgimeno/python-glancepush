@@ -51,7 +51,7 @@ def policy_check(ssh_key, image_name):
     instance.add_floating_ip(floating_ip)
     ssh = paramiko.SSHClient
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy)
-    ssh.connect(hostname=floating_ip, port=22, username=root, key_filename="")
+    ssh.connect(hostname=floating_ip, port=22, username="root", key_filename="")
     ssh.exec_command('mkdir -p /tmp/tests/')
     ftp = ssh.open_sftp()
     ftp.put('/etc/glancepush/test/Basic_Ubuntu_Server_12.04_LTS_OS_Disk_Image', '/tmp/tests')
