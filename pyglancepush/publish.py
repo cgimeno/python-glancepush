@@ -3,7 +3,7 @@
 # #############################################################################
 # AUTHOR: Carlos Gimeno                                                       #
 # EMAIL: cgimeno@bifi.es                                                      #
-# VERSION: 0.0.2                                                              #
+# VERSION: 0.0.3                                                              #
 # DESCRIPTION: Upload images to the cloud using Openstack API                 #
 # ##############################################################################
 from clouds import *
