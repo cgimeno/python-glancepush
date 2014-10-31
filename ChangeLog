@@ -1,3 +1,11 @@
+python-glancepush - 0.0.3
+
+    * Added logging
+
+python-glancepush - 0.0.2
+
+    *Fixed some potential bugs in publish.py
+
 python-glancepush - 0.0.1
 
     * Fixed some details in setup.py

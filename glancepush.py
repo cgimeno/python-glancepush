@@ -3,7 +3,7 @@
 # ##############################################################################
 # AUTHOR: Carlos Gimeno                                                       #
 # EMAIL: cgimeno@bifi.es                                                      #
-# VERSION: 0.0.1                                                              #
+# VERSION: 0.0.3                                                              #
 # DESCRIPTION: Software to upload images fetched from a VO image list         #
 # using vmcatcher, to Openstack, using Openstack API.                         #
 # This software will                                                          #
@@ -18,6 +18,7 @@ import argparse
 import ConfigParser
 import re
 import logging
+import logging.handlers
 from pyglancepush.delete import delete_image
 from pyglancepush.publish import publish_image
 from pyglancepush.policy import policy_check
@@ -52,13 +53,15 @@ def main():
 
     # Logging options
     log_directory = "/etc/glancepush/log/"
+    # Create log directory if not exists
+    if not os.path.exists(log_directory):
+        os.makedirs(log_directory)
     log_filename = "glancepush.log"
     logger = logging.getLogger('glancepush')
     logger.setLevel(logging.DEBUG)
     # Log to a file
-    fh = logging.FileHandler(log_directory + log_filename)
+    fh = logging.handlers.RotatingFileHandler(log_directory + log_filename, maxBytes=102400, backupCount=7)
     fh.setLevel(logging.DEBUG)
-
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     fh.setFormatter(formatter)
 
@@ -69,79 +72,79 @@ def main():
 
     logger.addHandler(fh)
     logger.addHandler(ch)
-    # Create log directory if not exists
-    if not os.path.exists(log_directory):
-        os.makedirs(log_directory)
 
     logger.info('Glancepush started. Checking images')
-    for cloud_file in os.listdir(clouds_directory):
-        # Read configuration file for every cloud in clouds directory
-        cloud_config.read(clouds_directory + cloud_file)
-        tenant = cloud_config.get("general", "testing_tenant")
-        auth_url = cloud_config.get("general", "endpoint_url")
-        password = cloud_config.get("general", "password")
-        username = cloud_config.get("general", "username")
-        is_secure = cloud_config.get("general", "is_secure")
-        ssh_key = cloud_config.get("general", "ssh_key")
+    if os.listdir(meta_directory) == []:
+        logger.info('No new images in ' + meta_directory)
+    else:
+        for cloud_file in os.listdir(clouds_directory):
+            # Read configuration file for every cloud in clouds directory
+            logger.info("Processing " + cloud_file + " from clouds directory")
+            cloud_config.read(clouds_directory + cloud_file)
+            tenant = cloud_config.get("general", "testing_tenant")
+            auth_url = cloud_config.get("general", "endpoint_url")
+            password = cloud_config.get("general", "password")
+            username = cloud_config.get("general", "username")
+            is_secure = cloud_config.get("general", "is_secure")
+            ssh_key = cloud_config.get("general", "ssh_key")
 
-        # Set the enviroment variables for keystone and nova-client
-        os.environ['OS_USERNAME'] = username
-        os.environ['OS_PASSWORD'] = password
-        os.environ['OS_AUTH_URL'] = auth_url
-        os.environ['OS_TENANT_NAME'] = tenant
-        os.environ['OS_IS_SECURE'] = is_secure
+            # Set the enviroment variables for keystone and nova-client
+            os.environ['OS_USERNAME'] = username
+            os.environ['OS_PASSWORD'] = password
+            os.environ['OS_AUTH_URL'] = auth_url
+            os.environ['OS_TENANT_NAME'] = tenant
+            os.environ['OS_IS_SECURE'] = is_secure
 
 
-        # And for every clouds, in clouds directory, we are going to upload (or delete) all images in meta directory
-        # To do this, we're going to read all files in meta directory, open their equivalent in spool directory
-        # and we're going to process these files.
-        for files in os.listdir(meta_directory):
-            with open(spooldir + files, "r") as image_file:
-                line = image_file.readline()
-                splitted = line.split("=")
-                glance_image = splitted[1]
-                if glance_image == "\'#DELETE#\'":
-                    print files
-                    # Delete image from cloud infrastructure
-                    deleted = delete_image(files)
-                    if deleted:
-                        print "Image " + files + "deleted"
+            # And for every clouds, in clouds directory, we are going to upload (or delete) all images in meta directory
+            # To do this, we're going to read all files in meta directory, open their equivalent in spool directory
+            # and we're going to process these files.
+            for files in os.listdir(meta_directory):
+                with open(spooldir + files, "r") as image_file:
+                    line = image_file.readline()
+                    splitted = line.split("=")
+                    glance_image = splitted[1]
+                    if glance_image == "\'#DELETE#\'":
+                        # Delete image from cloud infrastructure
+                        deleted = delete_image(files)
+                        if deleted:
+                            logger.info("Image " + files + "deleted")
+                        else:
+                            logger.info("Image not found, or has been already deleted")
                     else:
-                        print "Image not found, or has been already deleted"
-                else:
-                    # We're going to upload the image to the infrastructure
-                    with open(meta_directory + files,"r") as meta_file:
-                        properties_dict = {}
-                        ab = re.compile("properties\[\d+\]")
-                        image_format = "qcow2"
-                        container_format = "bare"
-                        for line in meta_file:
-                            splitted = line.split("=")
-                            if splitted[0] == 'comment':
-                                properties_dict['comment'] = splitted[1].rstrip('\n').replace('\'', '')
+                        # We're going to upload the image to the infrastructure
+                        with open(meta_directory + files,"r") as meta_file:
+                            properties_dict = {}
+                            ab = re.compile("properties\[\d+\]")
+                            image_format = "qcow2"
+                            container_format = "bare"
+                            for line in meta_file:
+                                splitted = line.split("=")
+                                if splitted[0] == 'comment':
+                                    properties_dict['comment'] = splitted[1].rstrip('\n').replace('\'', '')
 
-                            elif splitted[0] == "disk_format":
-                                image_format = splitted[1].rstrip('\n').replace('\"', '')
+                                elif splitted[0] == "disk_format":
+                                    image_format = splitted[1].rstrip('\n').replace('\"', '')
 
-                            elif splitted[0] == "container_format":
-                                container_format = splitted[1].rstrip('\n').replace('\"', '')
+                                elif splitted[0] == "container_format":
+                                    container_format = splitted[1].rstrip('\n').replace('\"', '')
 
-                            elif splitted[0] == "is_public":
-                                is_public = splitted[1].rstrip('\n')
+                                elif splitted[0] == "is_public":
+                                    is_public = splitted[1].rstrip('\n')
 
-                            elif splitted[0] == "is_protected":
-                                is_protected = splitted[1].rstrip('\n')
+                                elif splitted[0] == "is_protected":
+                                    is_protected = splitted[1].rstrip('\n')
 
-                            elif ab.match(splitted[0]):
-                                key = splitted[1].replace('\'', '')
-                                value = splitted[2].rstrip('\n').replace('\'', '')
-                                properties_dict[key] = value
-                        # Publish image into quarantine area
-                        publish_image(glance_image, files, image_format, container_format, is_public, is_protected, properties_dict)
-                        # TODO Finish policy check
-                        #policy_check(ssh_key, files)
-                    meta_file.close()
-            image_file.close()
+                                elif ab.match(splitted[0]):
+                                    key = splitted[1].replace('\'', '')
+                                    value = splitted[2].rstrip('\n').replace('\'', '')
+                                    properties_dict[key] = value
+                            # Publish image into quarantine area
+                            publish_image(glance_image, files, image_format, container_format, is_public, is_protected, properties_dict)
+                            # TODO Finish policy check
+                            #policy_check(ssh_key, files)
+                        meta_file.close()
+                image_file.close()
     logger.info('Finished exectuion of glancepush')
 
 if __name__ == "__main__":

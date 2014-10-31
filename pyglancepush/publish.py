@@ -11,6 +11,7 @@ from pyglancepush.delete import delete_image
 import keystoneclient.v2_0.client as ksclient
 import novaclient.v1_1.client as nvclient
 import novaclient.exceptions
+import logging
 import json
 import glanceclient
 from sys import exit
@@ -33,6 +34,7 @@ def publish_image(image_file, image_name, image_format, container_format, is_pub
     :param properties_dict:
     :return:
     """
+    logger = logging.getLogger('glancepush')
     if environ['OS_IS_SECURE'] == "True":
         is_secure = True
     else:
@@ -53,17 +55,18 @@ def publish_image(image_file, image_name, image_format, container_format, is_pub
         json_file = open("/etc/glancepush/voms.json").read()
         File_Open = True
     except IOError:
-        print "ERROR! /etc/glancepush/voms.json is not accessible"
+        logger.critical("CRITICAL ERROR! /etc/glancepush/voms.json is not accessible")
     if File_Open:
         json_data = json.loads(json_file)
         VO = properties_dict['VMCATCHER_EVENT_VO']
         try:
             tenant_VO = json_data[VO]["tenant"]
             if tenant_VO != environ['OS_TENANT_NAME'] :
-                print "This image is not associated with this VO " + image_name
-                print "Skipping..."
+                logger.info("This image is not associated with the current VO")
+                logger.info("Current VO is " + environ['OS_TENANT_NAME'] + "image VO is " + tenant_VO)
+                logger.info("Skipping image " + image_name)
         except KeyError:
-            print "ERROR! Tenant " + VO + " not defined in voms.json file"
+            logger.critical("CRITICAL ERROR! Tenant " + VO + " not defined in voms.json file")
 
         else:
             # Process image
@@ -77,7 +80,7 @@ def publish_image(image_file, image_name, image_format, container_format, is_pub
             glance = glanceclient.Client('1', glance_endpoint, token=keystone.auth_token)
             found = False
             upload = True
-            print "Processing " + image_name
+            logger.info('Proccessing '+ image_name)
             try:
                 # Check if image has been already uploaded.
                 image = nova.images.find(name=image_name)
@@ -91,20 +94,19 @@ def publish_image(image_file, image_name, image_format, container_format, is_pub
                 new_version = properties_dict['VMCATCHER_EVENT_HV_VERSION']
                 VO = properties_dict['VMCATCHER_EVENT_VO']
                 if old_version == new_version:
-                    print "Same version: " + new_version
-                    print "Skipping..."
+                    logger.info("Skipping image " + image_name + " version number " + new_version + " is the same in the stored image")
                     upload = False
                 else:
                     try:
-                        print "New version found: " + new_version
-                        print "Uploading to tenant: " + json_data[VO]["tenant"]
-                        print "Deleting previous version..."
+                        logger.info("New version found: " + new_version)
+                        logger.info("Uploading to tenant: " + json_data[VO]["tenant"])
+                        logger.info("Deleting previous version...")
+                        logger.info("Uploading new version")
                         delete = delete_image(image_name)
-                        print "Uploading new version"
                     except KeyError:
-                        print "ERROR! VO not defined in voms.json"
+                        logger.critical("CRITICAL ERROR! Tenant " + VO + " not defined in voms.json file")
             else:
-                print "Uploading to tenant: " + json_data[VO]["tenant"]
+                logger.info("Uploading to tenant: " + json_data[VO]["tenant"])
             if upload:
                 with open(image_file, 'r') as fimage:
                     image = glance.images.create(name=image_name, disk_format=image_format,
