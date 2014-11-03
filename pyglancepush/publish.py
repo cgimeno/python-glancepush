@@ -51,6 +51,7 @@ def publish_image(image_file, image_name, image_format, container_format, is_pub
         protect_image = False
     # Before doing anything else, check if this image is associated with current VO
     File_Open = False
+    skip_image = False
     try:
         json_file = open("/etc/glancepush/voms.json").read()
         File_Open = True
@@ -59,16 +60,21 @@ def publish_image(image_file, image_name, image_format, container_format, is_pub
     if File_Open:
         json_data = json.loads(json_file)
         VO = properties_dict['VMCATCHER_EVENT_VO']
-        try:
-            tenant_VO = json_data[VO]["tenant"]
-            if tenant_VO != environ['OS_TENANT_NAME'] :
-                logger.info("This image is not associated with the current VO")
-                logger.info("Current VO is " + environ['OS_TENANT_NAME'] + "image VO is " + tenant_VO)
-                logger.info("Skipping image " + image_name)
-        except KeyError:
-            logger.critical("CRITICAL ERROR! Tenant " + VO + " not defined in voms.json file")
+        #Check if VO is defined or not
+        if VO != "undefined":
+            try:
+                # If is defined, check if is mapped in voms.json
+                tenant_VO = json_data[VO]["tenant"]
+                if tenant_VO != environ['OS_TENANT_NAME']:
+                    logger.info("This image is not associated with the current VO")
+                    logger.info("Current VO is " + environ['OS_TENANT_NAME'] + "image VO is " + tenant_VO)
+                    logger.info("Skipping image " + image_name)
+                    skip_image = True
+            except KeyError:
+                logger.critical("CRITICAL ERROR! Tenant " + VO + " not defined in voms.json file")
+                skip_image = True
 
-        else:
+        if not skip_image:
             # Process image
             json_file = open("/etc/glancepush/voms.json").read()
             json_data = json.loads(json_file)

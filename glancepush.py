@@ -16,6 +16,7 @@
 import os
 import argparse
 import ConfigParser
+import ConfigParser.NoOptionError
 import re
 import logging
 import logging.handlers
@@ -44,7 +45,7 @@ def main():
 
     parser = argparse.ArgumentParser(description="Software to upload images fetched from a VO image list using.\n"
                                                  "vmcatcher, to Openstack, using Openstack API")
-    parser.add_argument("--version", action="version", version="0.0.3")
+    parser.add_argument("--version", action="version", version="0.0.3-dev")
     args = parser.parse_args()
 
     # Config Parser options
@@ -87,6 +88,13 @@ def main():
             username = cloud_config.get("general", "username")
             is_secure = cloud_config.get("general", "is_secure")
             ssh_key = cloud_config.get("general", "ssh_key")
+            # Added support to cacert
+            try:
+             os.environ['OS_CACERT'] = cloud_config.get("general","cacert")
+            except ConfigParser.NoOptionError:
+                # Do nothing if cacert is not defined
+                pass
+
 
             # Set the enviroment variables for keystone and nova-client
             os.environ['OS_USERNAME'] = username
@@ -94,6 +102,7 @@ def main():
             os.environ['OS_AUTH_URL'] = auth_url
             os.environ['OS_TENANT_NAME'] = tenant
             os.environ['OS_IS_SECURE'] = is_secure
+
 
 
             # And for every clouds, in clouds directory, we are going to upload (or delete) all images in meta directory
