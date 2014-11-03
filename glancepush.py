@@ -16,7 +16,6 @@
 import os
 import argparse
 import ConfigParser
-import ConfigParser.NoOptionError
 import re
 import logging
 import logging.handlers
