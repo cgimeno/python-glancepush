@@ -72,6 +72,7 @@ def publish_image(image_file, image_name, image_format, container_format, is_pub
                     skip_image = True
             except KeyError:
                 logger.critical("CRITICAL ERROR! Tenant " + VO + " not defined in voms.json file")
+                print "Hola"
                 skip_image = True
 
         if not skip_image:
@@ -105,14 +106,21 @@ def publish_image(image_file, image_name, image_format, container_format, is_pub
                 else:
                     try:
                         logger.info("New version found: " + new_version)
-                        logger.info("Uploading to tenant: " + json_data[VO]["tenant"])
+                        if VO != "undefined":
+                            logger.info("Uploading to tenant: " + json_data[VO]["tenant"])
+                        else:
+                            logger.info("No VO defined")
+                            logger.info("Image will be public")
                         logger.info("Deleting previous version...")
                         logger.info("Uploading new version")
                         delete = delete_image(image_name)
                     except KeyError:
                         logger.critical("CRITICAL ERROR! Tenant " + VO + " not defined in voms.json file")
             else:
-                logger.info("Uploading to tenant: " + json_data[VO]["tenant"])
+                if VO != "undefined":
+                    logger.info("Uploading to tenant: " + json_data[VO]["tenant"])
+                else:
+                    logger.info("Uploading public image")
             if upload:
                 with open(image_file, 'r') as fimage:
                     image = glance.images.create(name=image_name, disk_format=image_format,
