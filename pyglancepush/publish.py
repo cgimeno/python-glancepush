@@ -65,6 +65,7 @@ def publish_image(image_file, image_name, image_format, container_format, is_pub
                 logger.info("This image is not associated with the current VO")
                 logger.info("Current VO is " + environ['OS_TENANT_NAME'] + "image VO is " + tenant_VO)
                 logger.info("Skipping image " + image_name)
+                return
         except KeyError:
             logger.critical("CRITICAL ERROR! Tenant " + VO + " not defined in voms.json file")
 
