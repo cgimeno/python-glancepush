@@ -78,7 +78,7 @@ def publish_image(image_file, image_name, image_format, container_format, is_pub
             nova = nvclient.Client(insecure=is_secure, **nova_credentials)
             keystone = ksclient.Client(insecure=is_secure, **credentials)
             glance_endpoint = keystone.service_catalog.url_for(service_type='image', endpoint_type='publicURL')
-            glance = glanceclient.Client('1', glance_endpoint, token=keystone.auth_token)
+            glance = glanceclient.Client('1', glance_endpoint, token=keystone.auth_token, insecure=is_secure)
             found = False
             upload = True
             logger.info('Proccessing '+ image_name)
