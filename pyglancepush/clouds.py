@@ -22,6 +22,11 @@ def get_keystone_creds():
     d['password'] = environ['OS_PASSWORD']
     d['auth_url'] = environ['OS_AUTH_URL']
     d['tenant_name'] = environ['OS_TENANT_NAME']
+    try:
+        #Added support to cacert
+        d['cacert'] = environ['OS_CACERT']
+    except KeyError:
+        pass
     return d
 
 def get_nova_creds():
@@ -35,6 +40,11 @@ def get_nova_creds():
     d['api_key'] = environ['OS_PASSWORD']
     d['auth_url'] = environ['OS_AUTH_URL']
     d['project_id'] = environ['OS_TENANT_NAME']
+    try:
+        #Added support to cacert
+        d['cacert'] = environ['OS_CACERT']
+    except KeyError:
+        pass
     return d
 
 

@@ -11,3 +11,5 @@ username=John
 is_secure=True
 # SSH private key that will be used to perform policy checks (to be done)
 ssh_key=Carlos_lxbifi81
+# WARNING: Only define the next variable if you're going to need it. Otherwise you may encounter problems
+cacert=path_to_your_cert

@@ -1,3 +1,8 @@
+python-glancepush - 0.0.4
+
+    * VMCATCHER_EVENT_VO is now optional. Images without this parameter set, will be publicly available
+    * Added an option in clouds configuration file to support cacert (Reported by Viet Tran)
+
 python-glancepush - 0.0.3
 
     * Added logging

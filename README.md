@@ -64,6 +64,8 @@ Create two files, one for fedcloud.egi.eu, and another one for biomed.eu followi
 	is_secure=True
 	# SSH private key that will be used to perform policy checks (to be done)
 	ssh_key=Carlos_lxbifi81
+	# WARNING: Only define the next variable if you're going to need it. Otherwise you may encounter problems
+    cacert=path_to_your_cert
 
 Finally, just run glancepush.py **(python glancepush.py)**
 
