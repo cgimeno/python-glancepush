@@ -3,7 +3,7 @@
 # #############################################################################
 # AUTHOR: Carlos Gimeno                                                       #
 # EMAIL: cgimeno@bifi.es                                                      #
-# VERSION: 0.0.3                                                              #
+# VERSION: 0.0.5                                                              #
 # DESCRIPTION: Upload images to the cloud using Openstack API                 #
 # ##############################################################################
 from clouds import *
@@ -27,12 +27,12 @@ __status__ = "Development"
 def publish_image(image_file, image_name, image_format, container_format, is_public, is_protected, properties_dict):
     """
     Publish image into quarantine area
-    :param image_file:
-    :param image_name:
-    :param image_format:
-    :param container_format:
-    :param properties_dict:
-    :return:
+    :param image_file: Location in the filesystem of the image to be uploaded to Glance
+    :param image_name: Name of the image
+    :param image_format: Format of the image (usually QCOW2)
+    :param container_format: Format of the container (usually bare)
+    :param properties_dict: A dictionary which contains all properties from meta_file
+    :return: None
     """
     logger = logging.getLogger('glancepush')
     if environ['OS_IS_SECURE'] == "True":
@@ -60,7 +60,7 @@ def publish_image(image_file, image_name, image_format, container_format, is_pub
     if File_Open:
         json_data = json.loads(json_file)
         VO = properties_dict['VMCATCHER_EVENT_VO']
-        #Check if VO is defined or not
+        # Check if VO is defined or not
         if VO != "undefined":
             try:
                 # If is defined, check if is mapped in voms.json
@@ -87,12 +87,16 @@ def publish_image(image_file, image_name, image_format, container_format, is_pub
             glance = glanceclient.Client('1', glance_endpoint, token=keystone.auth_token, insecure=is_secure)
             found = False
             upload = True
-            logger.info('Proccessing '+ image_name)
+            logger.info('Proccessing ' + image_name)
             try:
                 # Check if image has been already uploaded.
                 image = nova.images.find(name=image_name)
                 found = True
             except novaclient.exceptions.NotFound:
+                # Image not found, do nothing and skip this image
+                pass
+            except novaclient.exceptions.NoUniqueMatch:
+                # Another image with the same name exists
                 pass
             # If image exists, get his metadata
             if found:
@@ -101,7 +105,8 @@ def publish_image(image_file, image_name, image_format, container_format, is_pub
                 new_version = properties_dict['VMCATCHER_EVENT_HV_VERSION']
                 VO = properties_dict['VMCATCHER_EVENT_VO']
                 if old_version == new_version:
-                    logger.info("Skipping image " + image_name + " version number " + new_version + " is the same in the stored image")
+                    logger.info(
+                        "Skipping image " + image_name + " version number " + new_version + " is the same in the stored image")
                     upload = False
                 else:
                     try:
@@ -119,13 +124,17 @@ def publish_image(image_file, image_name, image_format, container_format, is_pub
             else:
                 if VO != "undefined":
                     logger.info("Uploading to tenant: " + json_data[VO]["tenant"])
+                    tenant_name = "_" + json_data[VO]["tenant"]
+                    # Simple fix to avoid name clashes. We're going to add the tenant name to the image name.
                 else:
                     logger.info("Uploading public image")
+                    tenant_name = "_Appliance"
             if upload:
                 with open(image_file, 'r') as fimage:
-                    image = glance.images.create(name=image_name, disk_format=image_format,
+                    image = glance.images.create(name=image_name + tenant_name, disk_format=image_format,
                                                  container_format=container_format,
-                                                 data=fimage, properties=properties_dict, is_public=public, protected=protect_image)
+                                                 data=fimage, properties=properties_dict, is_public=public,
+                                                 protected=protect_image)
             if upload:
                 print nova.images.get(image.id).metadata
 

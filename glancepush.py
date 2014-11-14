@@ -3,7 +3,7 @@
 # ##############################################################################
 # AUTHOR: Carlos Gimeno                                                       #
 # EMAIL: cgimeno@bifi.es                                                      #
-# VERSION: 0.0.3                                                              #
+# VERSION: 0.0.5-devel                                                        #
 # DESCRIPTION: Software to upload images fetched from a VO image list         #
 # using vmcatcher, to Openstack, using Openstack API.                         #
 # This software will                                                          #
