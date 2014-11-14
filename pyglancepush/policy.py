@@ -49,9 +49,10 @@ def policy_check(ssh_key, image_name):
     # Add a new floating ip to the instance
     floating_ip = nova.floating_ips.create()
     instance.add_floating_ip(floating_ip)
+    # Open a new SSH connection
     ssh = paramiko.SSHClient
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy)
-    ssh.connect(hostname=floating_ip, port=22, username="root", key_filename="")
+    ssh.connect(hostname=floating_ip, port=22, username="root", key_filename="/home/cgimeno/id_rsa")
     ssh.exec_command('mkdir -p /tmp/tests/')
     ftp = ssh.open_sftp()
     ftp.put('/etc/glancepush/test/Basic_Ubuntu_Server_12.04_LTS_OS_Disk_Image', '/tmp/tests')
