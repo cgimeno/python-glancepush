@@ -131,6 +131,9 @@ def main():
                                 if splitted[0] == 'comment':
                                     properties_dict['comment'] = splitted[1].rstrip('\n').replace('\'', '')
 
+                                elif splitted[0] == "image_name":
+                                    image_name = splitted[1].rstrip('\n').replace('\"', '')
+
                                 elif splitted[0] == "disk_format":
                                     image_format = splitted[1].rstrip('\n').replace('\"', '')
 
@@ -148,7 +151,7 @@ def main():
                                     value = splitted[2].rstrip('\n').replace('\'', '')
                                     properties_dict[key] = value
                             # Publish image into quarantine area
-                            publish_image(glance_image, files, image_format, container_format, is_public, is_protected, properties_dict)
+                            publish_image(glance_image, image_name, image_format, container_format, is_public, is_protected, properties_dict)
                             # TODO Finish policy check
                             #policy_check(ssh_key, files)
                         meta_file.close()
