@@ -85,12 +85,16 @@ def publish_image(image_file, image_name, image_format, container_format, is_pub
             keystone = ksclient.Client(insecure=is_secure, **credentials)
             glance_endpoint = keystone.service_catalog.url_for(service_type='image', endpoint_type='publicURL')
             glance = glanceclient.Client('1', glance_endpoint, token=keystone.auth_token, insecure=is_secure)
+            VO = properties_dict['VMCATCHER_EVENT_VO']
+            image_name_suffix = "_Appliance"
+            if VO != "undefined":
+                image_name_suffix = "_" + json_data[VO]["tenant"]
             found = False
             upload = True
-            logger.info('Proccessing ' + image_name)
+            logger.info('Processing image ' + image_name)
             try:
                 # Check if image has been already uploaded.
-                image = nova.images.find(name=image_name)
+                image = nova.images.find(name=image_name+image_name_suffix)
                 found = True
             except novaclient.exceptions.NotFound:
                 # Image not found, do nothing and skip this image
@@ -103,7 +107,6 @@ def publish_image(image_file, image_name, image_format, container_format, is_pub
                 metadata = nova.images.get(image.id).metadata
                 old_version = metadata['vmcatcher_event_hv_version']
                 new_version = properties_dict['VMCATCHER_EVENT_HV_VERSION']
-                VO = properties_dict['VMCATCHER_EVENT_VO']
                 if old_version == new_version:
                     logger.info(
                         "Skipping image " + image_name + " version number " + new_version + " is the same in the stored image")
@@ -118,20 +121,18 @@ def publish_image(image_file, image_name, image_format, container_format, is_pub
                             logger.info("Image will be public")
                         logger.info("Deleting previous version...")
                         logger.info("Uploading new version")
-                        delete = delete_image(image_name)
+                        delete = delete_image(image_name + image_name_suffix)
                     except KeyError:
                         logger.critical("CRITICAL ERROR! Tenant " + VO + " not defined in voms.json file")
             else:
+                # not much to do here anymore, as the distinction is handled above
                 if VO != "undefined":
                     logger.info("Uploading to tenant: " + json_data[VO]["tenant"])
-                    tenant_name = "_" + json_data[VO]["tenant"]
-                    # Simple fix to avoid name clashes. We're going to add the tenant name to the image name.
                 else:
                     logger.info("Uploading public image")
-                    tenant_name = "_Appliance"
             if upload:
                 with open(image_file, 'r') as fimage:
-                    image = glance.images.create(name=image_name + tenant_name, disk_format=image_format,
+                    image = glance.images.create(name=image_name + image_name_suffix, disk_format=image_format,
                                                  container_format=container_format,
                                                  data=fimage, properties=properties_dict, is_public=public,
                                                  protected=protect_image)
