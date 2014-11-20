@@ -108,12 +108,13 @@ def main():
             # To do this, we're going to read all files in meta directory, open their equivalent in spool directory
             # and we're going to process these files.
             for files in os.listdir(meta_directory):
+                deleted = False
+                uploaded = False
                 with open(spooldir + files, "r") as image_file:
                     line = image_file.readline()
                     splitted = line.split("=")
                     glance_image = splitted[1]
                     if glance_image == "\'#DELETE#\'":
-                        deleted = False
                         # Delete image from cloud infrastructure
                         tenant = image_file.readline()
                         if tenant == "undefined":
@@ -127,7 +128,6 @@ def main():
                             logger.info("Image not found, or has been already deleted")
                     else:
                         # We're going to upload the image to the infrastructure
-                        uploaded = False
                         with open(meta_directory + files, "r") as meta_file:
                             properties_dict = {}
                             ab = re.compile("properties\[\d+\]")
