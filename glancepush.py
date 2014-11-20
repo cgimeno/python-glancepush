@@ -7,7 +7,7 @@
 # DESCRIPTION: Software to upload images fetched from a VO image list         #
 # using vmcatcher, to Openstack, using Openstack API.                         #
 # This software will                                                          #
-#                - Instanciate                                                #
+# - Instanciate                                                #
 #                - Apply policy checks                                        #
 #                - Publish image if tests succeed                             #
 #              Original software and idea by mpuel@in2p3.fr                   #
@@ -21,7 +21,6 @@ import logging
 import logging.handlers
 from pyglancepush.delete import delete_image
 from pyglancepush.publish import publish_image
-from pyglancepush.policy import policy_check
 
 __author__ = "Carlos Gimeno"
 __license__ = "MIT"
@@ -35,7 +34,6 @@ def main():
 
     # Configuration directories
 
-    cfg = "/etc/glancepush/glancepushrc"
     spooldir = "/var/spool/glancepush/"
     meta_directory = "/etc/glancepush/meta/"
     clouds_directory = "/etc/glancepush/clouds/"
@@ -53,9 +51,11 @@ def main():
 
     # Logging options
     log_directory = "/etc/glancepush/log/"
+
     # Create log directory if not exists
     if not os.path.exists(log_directory):
         os.makedirs(log_directory)
+
     log_filename = "glancepush.log"
     logger = logging.getLogger('glancepush')
     logger.setLevel(logging.DEBUG)
@@ -89,7 +89,7 @@ def main():
             ssh_key = cloud_config.get("general", "ssh_key")
             # Added support to cacert
             try:
-             os.environ['OS_CACERT'] = cloud_config.get("general","cacert")
+                os.environ['OS_CACERT'] = cloud_config.get("general", "cacert")
             except ConfigParser.NoOptionError:
                 # Do nothing if cacert is not defined
                 pass
@@ -113,15 +113,22 @@ def main():
                     splitted = line.split("=")
                     glance_image = splitted[1]
                     if glance_image == "\'#DELETE#\'":
+                        deleted = False
                         # Delete image from cloud infrastructure
-                        deleted = delete_image(files)
+                        tenant = image_file.readline()
+                        if tenant == "undefined":
+                            image_name_suffix = "_Appliance"
+                        else:
+                            image_name_suffix = "_" + tenant
+                        deleted = delete_image(files + image_name_suffix)
                         if deleted:
                             logger.info("Image " + files + "deleted")
                         else:
                             logger.info("Image not found, or has been already deleted")
                     else:
                         # We're going to upload the image to the infrastructure
-                        with open(meta_directory + files,"r") as meta_file:
+                        uploaded = False
+                        with open(meta_directory + files, "r") as meta_file:
                             properties_dict = {}
                             ab = re.compile("properties\[\d+\]")
                             image_format = "qcow2"
@@ -150,13 +157,28 @@ def main():
                                     key = splitted[1].replace('\'', '')
                                     value = splitted[2].rstrip('\n').replace('\'', '')
                                     properties_dict[key] = value
+
                             # Publish image into quarantine area
-                            publish_image(glance_image, image_name, image_format, container_format, is_public, is_protected, properties_dict)
+                            uploaded = publish_image(glance_image, image_name, image_format, container_format,
+                                                     is_public, is_protected, properties_dict)
                             # TODO Finish policy check
                             #policy_check(ssh_key, files)
                         meta_file.close()
+                    if uploaded:
+                        # Remove meta file, the image has been already uploaded
+                        try:
+                            os.remove(meta_directory + files)
+                        except OSError:
+                            pass
                 image_file.close()
+            if uploaded or deleted:
+                # Remove image file if the image has been uploaded or deleted
+                try:
+                    os.remove(spooldir + files)
+                except OSError:
+                    pass
     logger.info('Finished exectuion of glancepush')
+
 
 if __name__ == "__main__":
     main()

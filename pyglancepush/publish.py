@@ -72,7 +72,6 @@ def publish_image(image_file, image_name, image_format, container_format, is_pub
                     skip_image = True
             except KeyError:
                 logger.critical("CRITICAL ERROR! Tenant " + VO + " not defined in voms.json file")
-                print "Hola"
                 skip_image = True
 
         if not skip_image:
@@ -98,9 +97,6 @@ def publish_image(image_file, image_name, image_format, container_format, is_pub
                 found = True
             except novaclient.exceptions.NotFound:
                 # Image not found, do nothing and skip this image
-                pass
-            except novaclient.exceptions.NoUniqueMatch:
-                # Another image with the same name exists
                 pass
             # If image exists, get his metadata
             if found:
@@ -136,8 +132,10 @@ def publish_image(image_file, image_name, image_format, container_format, is_pub
                                                  container_format=container_format,
                                                  data=fimage, properties=properties_dict, is_public=public,
                                                  protected=protect_image)
-            if upload:
-                print nova.images.get(image.id).metadata
+            print nova.images.get(image.id).metadata
+
+    # Return if the image has been uploaded or not.
+    return upload
 
 
 def main():
