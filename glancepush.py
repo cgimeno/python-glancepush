@@ -42,7 +42,7 @@ def main():
 
     parser = argparse.ArgumentParser(description="Software to upload images fetched from a VO image list using.\n"
                                                  "vmcatcher, to Openstack, using Openstack API")
-    parser.add_argument("--version", action="version", version="0.0.5")
+    parser.add_argument("--version", action="version", version="0.0.5-devel")
     args = parser.parse_args()
 
     # Config Parser options
