@@ -12,7 +12,7 @@ except ImportError:
         use_setuptools()
         from setuptools import setup, find_packages
 
-version = "0.0.5"
+version = "0.0.5-devel"
 productname = "python-glancepush"
 
 data_files_installdir = "/usr/share/doc/python-glancepush-%s" % (version)
