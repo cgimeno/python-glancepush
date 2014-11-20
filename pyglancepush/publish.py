@@ -52,6 +52,7 @@ def publish_image(image_file, image_name, image_format, container_format, is_pub
     # Before doing anything else, check if this image is associated with current VO
     File_Open = False
     skip_image = False
+    upload = False
     try:
         json_file = open("/etc/glancepush/voms.json").read()
         File_Open = True
