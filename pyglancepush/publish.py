@@ -68,7 +68,7 @@ def publish_image(image_file, image_name, image_format, container_format, is_pub
                 tenant_VO = json_data[VO]["tenant"]
                 if tenant_VO != environ['OS_TENANT_NAME']:
                     logger.info("This image is not associated with the current VO")
-                    logger.info("Current VO is " + environ['OS_TENANT_NAME'] + "image VO is " + tenant_VO)
+                    logger.info("Current VO is " + environ['OS_TENANT_NAME'] + " image VO is " + tenant_VO)
                     logger.info("Skipping image " + image_name)
                     skip_image = True
             except KeyError:
